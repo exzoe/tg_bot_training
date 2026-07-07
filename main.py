@@ -8,8 +8,7 @@ from aiogram import Bot, Dispatcher, F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, Message
 
-from keyboards import main_keyboard, inline_menu_keyboard
-
+from keyboards import main_keyboard, inline_menu_keyboard, back_to_menu_keyboard
 
 load_dotenv()
 
@@ -17,6 +16,15 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 router = Router()
 
+async def redraw_message(callback: CallbackQuery, text: str, reply_markup=None):
+    await callback.message.delete()
+
+    await callback.message.answer(
+        text,
+        reply_markup=reply_markup
+    )
+
+    await callback.answer()
 
 @router.message(CommandStart())
 async def start_command(message: Message):
@@ -77,38 +85,53 @@ async def menu_handler(message: Message):
     )
 
 
-@router.callback_query(F.data == "profile")
+@router.callback_query(F.data == "menu_profile")
 async def inline_profile_handler(callback: CallbackQuery):
     user = callback.from_user
 
-    await callback.message.answer(
-        f"Inline-профиль:\n\n"
+    await callback.message.edit_text(
+        f"👤 Твой профиль:\n\n"
         f"ID: {user.id}\n"
         f"Имя: {user.first_name}\n"
-        f"Username: @{user.username if user.username else 'не указан'}"
+        f"Username: @{user.username if user.username else 'не указан'}",
+        reply_markup=back_to_menu_keyboard,
     )
 
     await callback.answer()
 
 
-@router.callback_query(F.data == "help")
+@router.callback_query(F.data == "menu_help")
 async def inline_help_handler(callback: CallbackQuery):
-    await callback.message.answer(
-        "Inline-помощь:\n\n"
-        "Ты нажал inline-кнопку, а не отправил обычное сообщение."
+    await callback.message.edit_text(
+        "ℹ️ Помощь:\n\n"
+        "Это учебный бот.\n"
+        "Сейчас мы изучаем inline-кнопки, callback_data и редактирование сообщений.",
+        reply_markup=back_to_menu_keyboard,
     )
 
     await callback.answer()
 
 
-@router.callback_query(F.data == "catalog")
+@router.callback_query(F.data == "menu_catalog")
 async def inline_catalog_handler(callback: CallbackQuery):
-    await callback.message.answer(
-        "Каталог пока пуст.\n\n"
-        "Позже тут могут быть товары, услуги, подписки или заказы."
+    await redraw_message(
+        callback,
+        "📦 Каталог:\n\n"
+        "Пока каталог пуст.\n"
+        "Позже здесь можно будет сделать товары, услуги, подписки или заказы.",
+        reply_markup=back_to_menu_keyboard,
     )
 
-    await callback.answer("Каталог открыт")
+
+@router.callback_query(F.data == "back_to_menu")
+async def back_to_menu_handler(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "Главное меню.\n\n"
+        "Выбери нужный раздел:",
+        reply_markup=inline_menu_keyboard,
+    )
+
+    await callback.answer()
 
 
 @router.message()
