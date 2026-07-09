@@ -1,154 +1,21 @@
 import asyncio
 import logging
-import os
 
-from dotenv import load_dotenv
+from aiogram import Bot, Dispatcher
 
-from aiogram import Bot, Dispatcher, F, Router
-from aiogram.filters import Command, CommandStart
-from aiogram.types import CallbackQuery, Message
-
-from keyboards import main_keyboard, inline_menu_keyboard, back_to_menu_keyboard
-
-load_dotenv()
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-
-router = Router()
-
-async def redraw_message(callback: CallbackQuery, text: str, reply_markup=None):
-    await callback.message.delete()
-
-    await callback.message.answer(
-        text,
-        reply_markup=reply_markup
-    )
-
-    await callback.answer()
-
-@router.message(CommandStart())
-async def start_command(message: Message):
-    await message.answer(
-        "Привет! Я твой первый учебный Telegram-бот.\n\n"
-        "Снизу появилась обычная reply-клавиатура.",
-        reply_markup=main_keyboard
-    )
-
-    await message.answer(
-        "А это inline-меню. Нажми любую кнопку:",
-        reply_markup=inline_menu_keyboard
-    )
-
-
-@router.message(Command("help"))
-async def help_command(message: Message):
-    await message.answer(
-        "Я пока умею:\n\n"
-        "/start - запустить бота\n"
-        "/help - показать помощь\n\n"
-        "Также у меня есть reply-кнопки и inline-кнопки."
-    )
-
-
-@router.message(F.text == "Профиль")
-async def profile_handler(message: Message):
-    user = message.from_user
-
-    await message.answer(
-        f"Твой профиль:\n\n"
-        f"ID: {user.id}\n"
-        f"Имя: {user.first_name}\n"
-        f"Username: @{user.username if user.username else 'не указан'}"
-    )
-
-
-@router.message(F.text == "Помощь")
-async def help_button_handler(message: Message):
-    await message.answer(
-        "Это раздел помощи.\n\n"
-        "Пока бот учебный, но позже мы добавим больше функций."
-    )
-
-
-@router.message(F.text == "О нас")
-async def about_handler(message: Message):
-    await message.answer(
-        "Это учебный бот для тренировки разработки Telegram-ботов на aiogram."
-    )
-
-
-@router.message(F.text == "Меню")
-async def menu_handler(message: Message):
-    await message.answer(
-        "Открываю inline-меню:",
-        reply_markup=inline_menu_keyboard
-    )
-
-
-@router.callback_query(F.data == "menu_profile")
-async def inline_profile_handler(callback: CallbackQuery):
-    user = callback.from_user
-
-    await callback.message.edit_text(
-        f"👤 Твой профиль:\n\n"
-        f"ID: {user.id}\n"
-        f"Имя: {user.first_name}\n"
-        f"Username: @{user.username if user.username else 'не указан'}",
-        reply_markup=back_to_menu_keyboard,
-    )
-
-    await callback.answer()
-
-
-@router.callback_query(F.data == "menu_help")
-async def inline_help_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "ℹ️ Помощь:\n\n"
-        "Это учебный бот.\n"
-        "Сейчас мы изучаем inline-кнопки, callback_data и редактирование сообщений.",
-        reply_markup=back_to_menu_keyboard,
-    )
-
-    await callback.answer()
-
-
-@router.callback_query(F.data == "menu_catalog")
-async def inline_catalog_handler(callback: CallbackQuery):
-    await redraw_message(
-        callback,
-        "📦 Каталог:\n\n"
-        "Пока каталог пуст.\n"
-        "Позже здесь можно будет сделать товары, услуги, подписки или заказы.",
-        reply_markup=back_to_menu_keyboard,
-    )
-
-
-@router.callback_query(F.data == "back_to_menu")
-async def back_to_menu_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Главное меню.\n\n"
-        "Выбери нужный раздел:",
-        reply_markup=inline_menu_keyboard,
-    )
-
-    await callback.answer()
-
-
-@router.message()
-async def echo_message(message: Message):
-    await message.answer(f"Я получил сообщение: {message.text}")
+from config import BOT_TOKEN
+from handlers.user import router as user_router
+from handlers.callbacks import router as callbacks_router
 
 
 async def main():
     logging.basicConfig(level=logging.INFO)
 
-    if not BOT_TOKEN:
-        raise ValueError("BOT_TOKEN не найден. Проверь файл .env")
-
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()
 
-    dp.include_router(router)
+    dp.include_router(user_router)
+    dp.include_router(callbacks_router)
 
     try:
         await dp.start_polling(bot)
