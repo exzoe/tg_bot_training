@@ -6,6 +6,7 @@ from aiogram import Bot, Dispatcher
 from config import BOT_TOKEN
 from handlers.user import router as user_router
 from handlers.callbacks import router as callbacks_router
+from handlers.profile import router as profile_router
 
 
 async def main():
@@ -14,8 +15,9 @@ async def main():
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()
 
-    dp.include_router(user_router)
+    dp.include_router(profile_router)
     dp.include_router(callbacks_router)
+    dp.include_router(user_router)
 
     try:
         await dp.start_polling(bot)

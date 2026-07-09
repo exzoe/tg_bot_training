@@ -59,3 +59,26 @@ cancel_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     input_field_placeholder="Можно отменить действие",
 )
+
+profile_confirm_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="✅ Подтвердить",
+                callback_data="profile_confirm",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="🔁 Заполнить заново",
+                callback_data="profile_restart",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="❌ Отмена",
+                callback_data="profile_cancel",
+            )
+        ],
+    ]
+)
