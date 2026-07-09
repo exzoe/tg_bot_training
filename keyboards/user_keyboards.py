@@ -10,6 +10,7 @@ main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="Профиль"), KeyboardButton(text="Помощь")],
         [KeyboardButton(text="О нас"), KeyboardButton(text="Меню")],
+        [KeyboardButton(text="📝 Анкета")],
     ],
     resize_keyboard=True,
     input_field_placeholder="Выберите действие",
@@ -49,4 +50,12 @@ back_to_menu_keyboard = InlineKeyboardMarkup(
             )
         ]
     ]
+)
+
+cancel_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="❌ Отмена")],
+    ],
+    resize_keyboard=True,
+    input_field_placeholder="Можно отменить действие",
 )
