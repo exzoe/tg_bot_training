@@ -88,3 +88,15 @@ def get_user(telegram_id: int):
     connection.close()
 
     return user
+
+def count_users() -> int:
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM users")
+
+    count = cursor.fetchone()[0]
+
+    connection.close()
+
+    return count

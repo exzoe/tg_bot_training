@@ -6,18 +6,25 @@ from database.db import get_user
 
 from keyboards.user_keyboards import (
     main_keyboard,
+    admin_main_keyboard,
     inline_menu_keyboard,
 )
+
+from utils.admin import is_admin
 
 router = Router()
 
 
 @router.message(CommandStart())
 async def start_command(message: Message):
+    user_id = message.from_user.id
+
+    keyboard = admin_main_keyboard if is_admin(user_id) else main_keyboard
+
     await message.answer(
         "Привет! Я твой первый учебный Telegram-бот.\n\n"
         "Снизу появилась обычная reply-клавиатура.",
-        reply_markup=main_keyboard,
+        reply_markup=keyboard,
     )
 
     await message.answer(
