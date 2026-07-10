@@ -10,6 +10,7 @@ from keyboards.user_keyboards import (
 )
 from states.profile_states import ProfileForm
 
+from database.db import save_user
 
 router = Router()
 
@@ -79,6 +80,16 @@ async def process_age(message: Message, state: FSMContext):
 @router.callback_query(F.data == "profile_confirm")
 async def confirm_profile_handler(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
+
+    user = callback.from_user
+
+    save_user(
+        telegram_id=user.id,
+        username=user.username,
+        first_name=user.first_name,
+        form_name=data.get("name"),
+        age=int(data.get("age")),
+    )
 
     await callback.message.edit_text(
         "✅ Анкета сохранена:\n\n"

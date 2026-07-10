@@ -10,25 +10,42 @@ from keyboards.user_keyboards import (
     cancel_keyboard,
 )
 
+from database.db import get_user
 
 router = Router()
 
 
 @router.callback_query(F.data == "menu_profile")
 async def inline_profile_handler(callback: CallbackQuery):
-    user = callback.from_user
+    telegram_user = callback.from_user
+    db_user = get_user(telegram_user.id)
+
+    if db_user is None:
+        await callback.message.edit_text(
+            "👤 Твой профиль:\n\n"
+            f"Telegram ID: {telegram_user.id}\n"
+            f"Telegram имя: {telegram_user.first_name}\n"
+            f"Username: @{telegram_user.username if telegram_user.username else 'не указан'}\n\n"
+            "Анкета пока не заполнена.\n"
+            "Нажми 📝 Анкета, чтобы заполнить профиль.",
+            reply_markup=back_to_menu_keyboard,
+        )
+
+        await callback.answer()
+        return
 
     await callback.message.edit_text(
-        f"👤 Твой профиль:\n\n"
-        f"ID: {user.id}\n"
-        f"Имя: {user.first_name}\n"
-        f"Фамилия: {user.last_name if user.last_name else 'не указана'}\n"
-        f"Username: @{user.username if user.username else 'не указан'}",
+        "👤 Твой профиль:\n\n"
+        f"Telegram ID: {db_user['telegram_id']}\n"
+        f"Telegram имя: {db_user['first_name']}\n"
+        f"Username: @{db_user['username'] if db_user['username'] else 'не указан'}\n\n"
+        "Анкета:\n"
+        f"Имя: {db_user['form_name']}\n"
+        f"Возраст: {db_user['age']}",
         reply_markup=back_to_menu_keyboard,
     )
 
     await callback.answer()
-
 
 @router.callback_query(F.data == "menu_help")
 async def inline_help_handler(callback: CallbackQuery):

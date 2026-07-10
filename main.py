@@ -8,9 +8,12 @@ from handlers.user import router as user_router
 from handlers.callbacks import router as callbacks_router
 from handlers.profile import router as profile_router
 
+from database.db import init_db
 
 async def main():
     logging.basicConfig(level=logging.INFO)
+
+    init_db()
 
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()

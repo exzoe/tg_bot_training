@@ -2,6 +2,8 @@ from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
+from database.db import get_user
+
 from keyboards.user_keyboards import (
     main_keyboard,
     inline_menu_keyboard,
@@ -36,13 +38,28 @@ async def help_command(message: Message):
 
 @router.message(F.text == "Профиль")
 async def profile_handler(message: Message):
-    user = message.from_user
+    telegram_user = message.from_user
+    db_user = get_user(telegram_user.id)
+
+    if db_user is None:
+        await message.answer(
+            "Твой профиль:\n\n"
+            f"Telegram ID: {telegram_user.id}\n"
+            f"Telegram имя: {telegram_user.first_name}\n"
+            f"Username: @{telegram_user.username if telegram_user.username else 'не указан'}\n\n"
+            "Анкета пока не заполнена.\n"
+            "Нажми 📝 Анкета, чтобы заполнить профиль."
+        )
+        return
 
     await message.answer(
-        f"Твой профиль:\n\n"
-        f"ID: {user.id}\n"
-        f"Имя: {user.first_name}\n"
-        f"Username: @{user.username if user.username else 'не указан'}"
+        "Твой профиль:\n\n"
+        f"Telegram ID: {db_user['telegram_id']}\n"
+        f"Telegram имя: {db_user['first_name']}\n"
+        f"Username: @{db_user['username'] if db_user['username'] else 'не указан'}\n\n"
+        "Анкета:\n"
+        f"Имя: {db_user['form_name']}\n"
+        f"Возраст: {db_user['age']}"
     )
 
 
