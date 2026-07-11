@@ -100,3 +100,23 @@ def count_users() -> int:
     connection.close()
 
     return count
+
+def get_users(limit: int = 5, offset: int = 0):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT telegram_id, username, first_name, form_name, age
+        FROM users
+        ORDER BY telegram_id DESC
+        LIMIT ? OFFSET ?
+        """,
+        (limit, offset),
+    )
+
+    users = cursor.fetchall()
+
+    connection.close()
+
+    return users
